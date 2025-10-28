@@ -80,6 +80,13 @@
                     <i class="fas fa-file-archive"></i>
                     Previously Printed
                 </a>
+                {% if config.RAZORPAY_KEY_ID and config.RAZORPAY_KEY_SECRET %}
+                <a href="{{ url_for('buy_credits') }}" 
+                   class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105">
+                    <i class="fas fa-coins"></i>
+                    Buy Credits
+                </a>
+                {% endif %}
                 <a href="{{ url_for('settings') }}" 
                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105">
                     <i class="fas fa-cog"></i>
@@ -100,7 +107,7 @@
                 </a>
                 
                 <!-- Back to Main Dashboard -->
-                <a href="{{ url_for('preview_dashboard') }}" 
+                <a href="{{ url_for('dashboard') }}" 
                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105">
                     <i class="fas fa-tachometer-alt"></i>
                     Back to Main Dashboard
