@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Secure Printing System</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <!-- Main Container -->
+    <div class="w-full max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <!-- Login Form Section -->
+            <div class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-lock text-2xl text-white"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
+                    <p class="text-gray-600">Sign in to your secure printing account</p>
+                </div>
+
+                <!-- Login Form -->
+                <form method="post" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-envelope text-blue-500 mr-2"></i>
+                            Email Address
+                        </label>
+                        <input type="email" name="email" id="email" required 
+                               placeholder="your.email@mhssce.ac.in"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white">
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-key text-blue-500 mr-2"></i>
+                            Password
+                        </label>
+                        <div class="relative">
+                            <input type="password" name="password" id="password" required 
+                                   placeholder="Enter your password"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white pr-12">
+                            <button type="button" onclick="togglePassword()" 
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                                <i id="password-icon" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2 text-right">
+                            <a href="{{ url_for('forgot_password') }}" class="text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                                Forgot Password?
+                            </a>
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="my-8 flex items-center">
+                    <div class="flex-1 border-t border-gray-300"></div>
+                    <span class="px-4 text-gray-500 text-sm font-medium">OR</span>
+                    <div class="flex-1 border-t border-gray-300"></div>
+                </div>
+
+                <!-- OAuth Login Buttons -->
+                <div class="space-y-3">
+                    <a href="{{ url_for('oauth_login', provider='google') }}" 
+                       class="w-full bg-white border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Continue with Google
+                    </a>
+                    
+
+                </div>
+
+                <!-- Divider -->
+                <div class="my-6 flex items-center">
+                    <div class="flex-1 border-t border-gray-300"></div>
+                    <span class="px-4 text-gray-500 text-sm font-medium">OR</span>
+                    <div class="flex-1 border-t border-gray-300"></div>
+                </div>
+
+                <!-- QR Login Toggle -->
+                <button onclick="toggleQRScanner()" 
+                        class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
+                    <i class="fas fa-qrcode"></i>
+                    <span id="qr-toggle-text">Scan QR Code to Login</span>
+                </button>
+
+                <!-- Register Link -->
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">
+                        Don't have an account? 
+                        <a href="{{ url_for('register') }}" class="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+                            Create Account
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- QR Scanner Section -->
+            <div class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12">
+                <div class="text-center mb-8">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-camera text-2xl text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quick QR Login</h2>
+                    <p class="text-gray-600">Use your camera to scan a QR code for instant access</p>
+                </div>
+
+                <!-- QR Scanner Container -->
+                <div id="qr-scanner-container" class="hidden">
+                    <div class="bg-gray-100 rounded-xl p-6 mb-6">
+                        <div id="qr-reader" class="w-full"></div>
+                        <div id="qr-reader-results" class="mt-4 text-center"></div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="startScanner()" id="start-btn"
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2">
+                            <i class="fas fa-play"></i>
+                            Start Scanner
+                        </button>
+                        <button onclick="stopScanner()" id="stop-btn"
+                                class="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2">
+                            <i class="fas fa-stop"></i>
+                            Stop Scanner
+                        </button>
+                    </div>
+                </div>
+
+                <!-- QR Scanner Info -->
+                <div id="qr-info" class="space-y-6">
+                    <!-- How it works -->
+                    <div class="bg-blue-50 rounded-xl p-6">
+                        <h3 class="font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-blue-600"></i>
+                            How QR Login Works
+                        </h3>
+                        <ol class="text-sm text-blue-700 space-y-2">
+                            <li class="flex items-start gap-3">
+                                <span class="bg-blue-200 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                                Click "Scan QR Code to Login" button
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-blue-200 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                                Allow camera access when prompted
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-blue-200 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                                Point your camera at the QR code
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-blue-200 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                                Automatically login when detected
+                            </li>
+                        </ol>
+                    </div>
+
+                    <!-- Features -->
+                    <div class="bg-green-50 rounded-xl p-6">
+                        <h3 class="font-semibold text-green-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                            QR Login Features
+                        </h3>
+                        <ul class="text-sm text-green-700 space-y-2">
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-bolt text-green-500"></i>
+                                Instant access - no typing required
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-shield-alt text-green-500"></i>
+                                Secure authentication method
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-mobile-alt text-green-500"></i>
+                                Works with any camera device
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-clock text-green-500"></i>
+                                No password to remember
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Camera Support -->
+                    <div class="bg-purple-50 rounded-xl p-6">
+                        <h3 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-camera text-purple-600"></i>
+                            Camera Support
+                        </h3>
+                        <p class="text-sm text-purple-700">
+                            ✅ <strong>PC Cameras:</strong> Built-in webcams and external USB cameras<br>
+                            ✅ <strong>Mobile Cameras:</strong> Front and rear cameras<br>
+                            ✅ <strong>All Browsers:</strong> Chrome, Firefox, Safari, Edge
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-2">
+                {% for message in messages %}
+                    <div class="bg-white border-l-4 border-red-500 shadow-lg rounded-lg p-4 max-w-sm animate-pulse">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                            <p class="text-gray-800">{{ message }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Signing In</h3>
+            <p class="text-gray-600 mb-4">Please wait while we authenticate your account...</p>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="text-sm text-blue-800">
+                    <i class="fas fa-shield-alt text-blue-600 mr-2"></i>
+                    <strong>Securing your connection...</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('password-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.classList.remove('fa-eye');
+                passwordIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.classList.remove('fa-eye-slash');
+                passwordIcon.classList.add('fa-eye');
+            }
+        }
+
+        function toggleQRScanner() {
+            const container = document.getElementById('qr-scanner-container');
+            const info = document.getElementById('qr-info');
+            const toggleText = document.getElementById('qr-toggle-text');
+            
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                info.classList.add('hidden');
+                toggleText.textContent = 'Hide QR Scanner';
+            } else {
+                container.classList.add('hidden');
+                info.classList.remove('hidden');
+                toggleText.textContent = 'Scan QR Code to Login';
+                if (isScanning) {
+                    stopScanner();
+                }
+            }
+        }
+
+        function startScanner() {
+            if (isScanning) return;
+            
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    const cameraId = devices[0].id;
+                    html5QrcodeScanner.start(
+                        cameraId,
+                        config,
+                        onScanSuccess,
+                        onScanFailure
+                    ).then(() => {
+                        isScanning = true;
+                        document.getElementById('start-btn').disabled = true;
+                        document.getElementById('stop-btn').disabled = false;
+                        document.getElementById('qr-reader-results').innerHTML = 
+                            '<p class="text-blue-600 font-medium"><i class="fas fa-camera mr-2"></i>Scanner active - point camera at QR code</p>';
+                    }).catch(err => {
+                        console.error('Error starting scanner:', err);
+                        document.getElementById('qr-reader-results').innerHTML = 
+                            '<p class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Error: ' + err + '</p>';
+                    });
+                }
+            }).catch(err => {
+                console.error('Error getting cameras:', err);
+                document.getElementById('qr-reader-results').innerHTML = 
+                    '<p class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>No cameras found or permission denied</p>';
+            });
+        }
+
+        function stopScanner() {
+            if (!isScanning) return;
+            
+            html5QrcodeScanner.stop().then(() => {
+                isScanning = false;
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('stop-btn').disabled = true;
+                document.getElementById('qr-reader-results').innerHTML = 
+                    '<p class="text-gray-600"><i class="fas fa-stop-circle mr-2"></i>Scanner stopped</p>';
+            }).catch(err => {
+                console.error('Error stopping scanner:', err);
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('QR Code detected:', decodedText);
+            document.getElementById('qr-reader-results').innerHTML = 
+                '<p class="text-green-600 font-medium"><i class="fas fa-check-circle mr-2"></i>QR Code detected! Redirecting...</p>';
+            
+            // Stop scanner
+            stopScanner();
+            
+            // Fix port in URL if needed (replace port 5000 with 5001)
+            let fixedUrl = decodedText;
+            if (decodedText.includes(':5000/')) {
+                fixedUrl = decodedText.replace(':5000/', ':5001/');
+                console.log('Fixed URL port:', fixedUrl);
+            }
+            
+            // Redirect to the QR code URL
+            setTimeout(() => {
+                window.location.href = fixedUrl;
+            }, 1000);
+        }
+
+        function onScanFailure(error) {
+            // This is called continuously while scanning, so we don't want to log every failure
+        }
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.animate-pulse');
+            messages.forEach(function(message) {
+                message.style.opacity = '0';
+                message.style.transform = 'translateX(100%)';
+                setTimeout(() => message.remove(), 300);
+            });
+        }, 5000);
+
+        // Initialize button states
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('stop-btn').disabled = true;
+            
+            // Add loading screen to login form
+            const loginForm = document.querySelector('form[method="post"]');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    document.getElementById('loadingOverlay').classList.remove('hidden');
+                    const submitBtn = loginForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing In...';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

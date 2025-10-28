@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Users</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .nav {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+        }
+        
+        .logo {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 50px;
+            width: auto;
+        }
+        
+        .nav a {
+            color: #495057;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 5px;
+            background: white;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .nav a:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='MHSSCE.png') }}" alt="MHSSCE Logo" class="logo" onerror="this.style.display='none'">
+            <h1>👥 User Management</h1>
+            <p>Admin Panel - Secure Printing System</p>
+        </div>
+        
+        <div class="nav">
+            <a href="{{ url_for('admin_dashboard') }}">← Back to Dashboard</a>
+            <a href="{{ url_for('admin_transactions') }}">Transactions</a>
+            <a href="{{ url_for('admin_print_jobs') }}">Print Jobs</a>
+            <a href="{{ url_for('admin_ink_changes') }}">Ink Management</a>
+        </div>
+        
+                <div class="content">
+            <div class="section">
+                <h2>All Users</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>User Name</th>
+                            <th>Email</th>
+                            <th>Credits</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.user_id }}</td>
+                            <td>{{ user.user_name }}</td>
+                            <td>{{ user.user_email }}</td>
+                            <td>{{ user.credits }}</td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="/admin/user/{{ user.user_id }}" class="btn btn-small" style="background-color: #007bff;">View</a>
+                                <button class="btn btn-warning btn-sm" onclick="quickAddCredits('{{ user.user_id }}', '{{ user.user_name }}')">Add Credits</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    function quickAddCredits(userId, userName) {
+        const credits = prompt(`Add credits to ${userName} (User ID: ${userId}):\nEnter amount:`);
+        if (credits && !isNaN(credits) && credits > 0) {
+            const reason = prompt('Reason for adding credits:', 'Manual admin addition');
+            if (reason) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("admin_add_credits_post") }}';
+                
+                const userIdInput = document.createElement('input');
+                userIdInput.type = 'hidden';
+                userIdInput.name = 'user_id';
+                userIdInput.value = userId;
+                
+                const creditsInput = document.createElement('input');
+                creditsInput.type = 'hidden';
+                creditsInput.name = 'credits';
+                creditsInput.value = credits;
+                
+                const reasonInput = document.createElement('input');
+                reasonInput.type = 'hidden';
+                reasonInput.name = 'reason';
+                reasonInput.value = reason;
+                
+                form.appendChild(userIdInput);
+                form.appendChild(creditsInput);
+                form.appendChild(reasonInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    }
+    </script>
+</body>
+</html>

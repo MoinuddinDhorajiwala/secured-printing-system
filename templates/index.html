@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Printing System - MHSSCE</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white/90 backdrop-blur-md shadow-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <img src="{{ url_for('static', filename='mhssce.png') }}" alt="MHSSCE Logo" class="w-10 h-10 rounded-full shadow-lg">
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Secure Printing</h1>
+                        <p class="text-sm text-gray-600 font-medium">MHSSCE</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{{ url_for('login') }}" 
+                       class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </a>
+                    <a href="{{ url_for('register') }}" 
+                       class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1">
+                        <i class="fas fa-user-plus"></i>
+                        Register
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg py-32 px-6 relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="max-w-6xl mx-auto text-center relative z-10">
+            <div class="mb-8">
+                <div class="inline-block bg-white/20 backdrop-blur-md rounded-full p-6 mb-6 float-animation">
+                    <i class="fas fa-shield-alt text-6xl text-white"></i>
+                </div>
+            </div>
+            <h1 class="text-6xl font-bold text-white mb-8 leading-tight">
+                Welcome to <span class="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">Secure Printing System</span>
+            </h1>
+            <p class="text-2xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed">
+                Experience the future of secure document printing with our advanced encryption and user-friendly interface. 
+                Print your documents safely and efficiently with enterprise-grade security.
+            </p>
+            <div class="flex gap-6 justify-center">
+                <a href="{{ url_for('register') }}" 
+                   class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center gap-3 shadow-2xl hover:shadow-3xl transform hover:scale-110 hover:-translate-y-2">
+                    <i class="fas fa-rocket text-2xl"></i>
+                    Get Started Now
+                </a>
+                <a href="{{ url_for('login') }}" 
+                   class="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-10 py-5 rounded-2xl font-bold text-xl border-2 border-white/50 transition-all duration-300 flex items-center gap-3 shadow-2xl hover:shadow-3xl transform hover:scale-110 hover:-translate-y-2">
+                    <i class="fas fa-sign-in-alt text-2xl"></i>
+                    Sign In
+                </a>
+            </div>
+        </div>
+        <!-- Floating elements -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full float-animation" style="animation-delay: 0s;"></div>
+        <div class="absolute top-40 right-20 w-16 h-16 bg-white/10 rounded-full float-animation" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 left-20 w-24 h-24 bg-white/10 rounded-full float-animation" style="animation-delay: 4s;"></div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-24 px-6 bg-gray-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <div class="inline-block bg-gradient-to-r from-blue-500 to-purple-600 rounded-full p-4 mb-6">
+                    <i class="fas fa-star text-white text-3xl"></i>
+                </div>
+                <h2 class="text-5xl font-bold text-gray-800 mb-6">
+                    Powerful Features for Secure Printing
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Everything you need for secure document management and printing with enterprise-grade security
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- Feature 1 -->
+                <div class="bg-white rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 group">
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                        <i class="fas fa-shield-alt text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 group-hover:text-blue-600 transition-colors">Advanced Security</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Military-grade encryption ensures your documents remain private and secure throughout the entire printing process.
+                    </p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="bg-white rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 group">
+                    <div class="bg-gradient-to-br from-green-500 to-emerald-600 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                        <i class="fas fa-qrcode text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 group-hover:text-green-600 transition-colors">QR Code Access</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Quick and secure login with QR code scanning. No need to remember complex passwords.
+                    </p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="bg-white rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 group">
+                    <div class="bg-gradient-to-br from-purple-500 to-pink-600 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                        <i class="fas fa-print text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 group-hover:text-purple-600 transition-colors">Print Control</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Complete control over your printing - copies, pages, orientation, and watermarks.
+                    </p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="bg-white rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 group">
+                    <div class="bg-gradient-to-br from-orange-500 to-red-600 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                        <i class="fas fa-cloud text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 group-hover:text-orange-600 transition-colors">Cloud Storage</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Secure cloud storage for your documents with automatic backup and version control.
+                    </p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="bg-white rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 group">
+                    <div class="bg-gradient-to-br from-teal-500 to-cyan-600 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                        <i class="fas fa-chart-line text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 group-hover:text-teal-600 transition-colors">Usage Analytics</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Track your printing usage, costs, and environmental impact with detailed analytics.
+                    </p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="bg-white rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 group">
+                    <div class="bg-gradient-to-br from-indigo-500 to-blue-600 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                        <i class="fas fa-mobile-alt text-white text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 group-hover:text-indigo-600 transition-colors">Mobile Ready</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Access and print your documents from any device with our responsive design.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center">
+                <div class="flex items-center justify-center gap-3 mb-4">
+                    <i class="fas fa-shield-alt text-2xl text-blue-600"></i>
+                    <div>
+                        <h3 class="text-xl font-bold">Secure Printing System</h3>
+                        <p class="text-sm text-gray-400">MHSSCE</p>
+                    </div>
+                </div>
+                <p class="text-gray-400 mb-6">
+                    Secure document printing for MHSSCE community
+                </p>
+                <div class="border-t border-gray-800 pt-6">
+                    <p class="text-gray-500 text-sm">
+                        © 2025 MHSSCE Secure Printing System By Batman. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+  </body>
+</html>

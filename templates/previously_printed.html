@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previously Printed Files - Secure Printing System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="bg-white/20 backdrop-blur-sm p-3 rounded-full">
+                        <i class="fas fa-history text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl lg:text-3xl font-bold">Previously Printed Files</h1>
+                        <p class="text-blue-100">Documents you've printed in the past 7 days</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="{{ url_for('preview_dashboard') }}" 
+                       class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                <i class="fas fa-file-alt text-blue-600"></i>
+                Your Previously Printed Files
+            </h2>
+            <p class="text-gray-600">These documents are stored temporarily for 7 days after printing. You can restore them to print again.</p>
+        </div>
+
+        {% if temp_docs|length == 0 %}
+            <!-- Empty State -->
+            <div class="bg-white rounded-2xl shadow-xl p-12 text-center">
+                <div class="mb-6">
+                    <i class="fas fa-file-pdf text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">No Previously Printed Files</h3>
+                    <p class="text-gray-600 mb-6">Documents you print will appear here for 7 days, allowing you to restore and print them again.</p>
+                    <a href="{{ url_for('preview_dashboard') }}" 
+                       class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center gap-3">
+                        <i class="fas fa-home"></i>
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- Documents Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {% for doc in temp_docs %}
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
+                    <!-- Document Header -->
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-4">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-file-pdf text-2xl"></i>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-lg truncate">{{ doc.original_name }}</h3>
+                                <p class="text-purple-100 text-sm">ID: {{ doc.temp_doc_id }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Info -->
+                    <div class="p-4">
+                        <div class="space-y-3 mb-4">
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span class="text-sm">
+                                    Printed: {{ doc.created_at.strftime('%B %d, %Y at %I:%M %p') if doc.created_at else 'Unknown date' }}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-clock"></i>
+                                <span class="text-sm">
+                                    Expires: {{ doc.expires_at.strftime('%B %d, %Y at %I:%M %p') if doc.expires_at else 'Unknown date' }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="space-y-3">
+                            <!-- Restore Button -->
+                            <form action="{{ url_for('restore_document', temp_doc_id=doc.temp_doc_id) }}" method="post" 
+                                  onsubmit="return confirm('Are you sure you want to restore this document?')">
+                                <button type="submit" 
+                                        class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                                    <i class="fas fa-undo"></i>
+                                    Restore Document
+                                </button>
+                            </form>
+                            
+                            <!-- Download Button -->
+                            <a href="{{ url_for('download_temp_document', temp_doc_id=doc.temp_doc_id) }}" 
+                               class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                                <i class="fas fa-download"></i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-2">
+                {% for message in messages %}
+                    <div class="bg-white border-l-4 border-blue-500 shadow-lg rounded-lg p-4 max-w-sm animate-pulse">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            <p class="text-gray-800">{{ message }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

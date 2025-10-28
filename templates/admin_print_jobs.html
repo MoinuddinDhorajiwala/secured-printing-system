@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Print Jobs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .nav {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .nav a {
+            color: #495057;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 5px;
+            background: white;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .nav a:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-printed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .text-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .text-danger {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖨️ Print Jobs Management</h1>
+            <p>Admin Panel - Secure Printing System</p>
+        </div>
+        
+        <div class="nav">
+            <a href="{{ url_for('admin_dashboard') }}">← Back to Dashboard</a>
+            <a href="{{ url_for('admin_users') }}">Users</a>
+            <a href="{{ url_for('admin_transactions') }}">Transactions</a>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>All Print Jobs</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>User</th>
+                            <th>Document</th>
+                            <th>Printer</th>
+                            <th>Pages</th>
+                            <th>Copies</th>
+                            <th>Watermark</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr>
+                            <td>{{ job.job_id }}</td>
+                            <td>{{ job.user_name }} (ID: {{ job.user_id }})</td>
+                            <td>{{ job.doc_name }}</td>
+                            <td>{{ job.printer }}</td>
+                            <td>{{ job.page_range or 'All' }}</td>
+                            <td>{{ job.copies }}</td>
+                            <td>{{ job.watermark or 'None' }}</td>
+                            <td>
+                                <span class="status status-{{ job.status }}">{{ job.status }}</span>
+                            </td>
+                            <td>{{ job.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if job.status == 'pending' %}
+                                    <button class="btn btn-success btn-sm" onclick="updateJobStatus('{{ job.job_id }}', 'printed')">Mark Printed</button>
+                                    <button class="btn btn-danger btn-sm" onclick="updateJobStatus('{{ job.job_id }}', 'failed')">Mark Failed</button>
+                                {% elif job.status == 'printed' %}
+                                    <span class="text-success">✅ Completed</span>
+                                {% else %}
+                                    <span class="text-danger">❌ Failed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    function updateJobStatus(jobId, status) {
+        if (confirm(`Are you sure you want to mark job ${jobId} as ${status}?`)) {
+            // This would typically be an AJAX call to an API endpoint
+            alert(`Job ${jobId} marked as ${status}. (This is a demo - implement actual status update logic)`);
+            location.reload();
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Document - Secure Printing System</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-xl">
+        <div class="max-w-4xl mx-auto px-6 py-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <h1 class="text-2xl lg:text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-cloud-upload-alt text-3xl"></i>
+                    Upload Document
+                </h1>
+                <a href="{{ url_for('preview_dashboard') }}" 
+                   class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-200 flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Upload Form -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="text-center mb-8">
+                    <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-file-pdf text-3xl text-blue-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Upload Document</h2>
+                    <p class="text-gray-600">Select a PDF, Word document, or image file to upload for secure printing</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    <!-- File Upload Area -->
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-all duration-300" 
+                         ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onclick="document.getElementById('pdf_file').click()">
+                        <div class="space-y-4">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                            <div>
+                                <p class="text-lg font-medium text-gray-700">Choose a file or drag it here</p>
+                            <p class="text-sm text-gray-500">Supported: PDF, DOCX, DOC, JPG, PNG, GIF, BMP, TIFF, WebP</p>
+                            <p class="text-sm text-gray-500">Maximum file size: 50MB</p>
+                            </div>
+                            <input type="file" id="pdf_file" name="pdf_file" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp" required 
+                                   class="hidden" onchange="updateFileName(this)">
+                            <div id="file-name" class="text-sm text-blue-600 font-medium hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Button -->
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
+                        <i class="fas fa-upload text-xl"></i>
+                        Upload Document
+                    </button>
+    </form>
+
+                <!-- Upload Guidelines -->
+                <div class="mt-8 bg-gray-50 rounded-xl p-6">
+                    <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        Upload Guidelines
+                    </h3>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-0.5"></i>
+                            PDF, DOCX, DOC, and image files are supported
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-0.5"></i>
+                            Maximum file size is 50MB
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-0.5"></i>
+                            Files are stored securely in our database
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-0.5"></i>
+                            QR code generated for quick access
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="text-center mb-6">
+                    <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-qrcode text-3xl text-green-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Quick Login QR Code</h2>
+                    <p class="text-gray-600">Scan this code for instant access to your account</p>
+                </div>
+
+                <!-- QR Code Display -->
+                <div class="bg-gray-50 rounded-xl p-6 text-center">
+                    <div id="qr-container">
+                        <img src="{{ url_for('get_qr_code') }}" alt="QR Code for Quick Login" 
+                             class="mx-auto max-w-full h-auto border-2 border-gray-200 rounded-lg shadow-md"
+                             onerror="showQRError(this)"
+                             onload="showQRSuccess()">
+                    </div>
+                    <div id="qr-error" class="hidden">
+                        <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                        <p class="text-gray-600 mb-4">QR Code not available yet</p>
+                        <p class="text-sm text-gray-500">Upload your first document to generate a QR code</p>
+                    </div>
+                </div>
+
+                <!-- QR Code Info -->
+                <div class="mt-6 bg-blue-50 rounded-xl p-6">
+                    <h3 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-mobile-alt text-blue-600"></i>
+                        How to Use QR Code
+                    </h3>
+                    <ul class="text-sm text-blue-700 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-blue-500 mt-0.5"></i>
+                            Open any QR code scanner on your phone
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-blue-500 mt-0.5"></i>
+                            Scan the QR code above
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-blue-500 mt-0.5"></i>
+                            Instantly access your account
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-blue-500 mt-0.5"></i>
+                            No need to remember passwords
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-2">
+                {% for message in messages %}
+                    <div class="bg-white border-l-4 border-blue-500 shadow-lg rounded-lg p-4 max-w-sm animate-pulse">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            <p class="text-gray-800">{{ message }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const allowedExtensions = ['.pdf', '.docx', '.doc', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'];
+                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+                
+                if (allowedExtensions.includes(fileExtension)) {
+                    document.getElementById('pdf_file').files = files;
+                    updateFileName(document.getElementById('pdf_file'));
+                } else {
+                    alert('Please drop a supported file type: PDF, DOCX, DOC, JPG, PNG, GIF, BMP, TIFF, or WebP');
+                }
+            }
+            event.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+        }
+
+        function updateFileName(input) {
+            const fileNameDiv = document.getElementById('file-name');
+            if (input.files.length > 0) {
+                fileNameDiv.textContent = `Selected: ${input.files[0].name}`;
+                fileNameDiv.classList.remove('hidden');
+            } else {
+                fileNameDiv.classList.add('hidden');
+            }
+        }
+
+        function showQRError(img) {
+            img.style.display = 'none';
+            document.getElementById('qr-error').classList.remove('hidden');
+        }
+
+        function showQRSuccess() {
+            document.getElementById('qr-error').classList.add('hidden');
+        }
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.animate-pulse');
+            messages.forEach(function(message) {
+                message.style.opacity = '0';
+                message.style.transform = 'translateX(100%)';
+                setTimeout(() => message.remove(), 300);
+            });
+        }, 5000);
+    </script>
+  </body>
+</html>

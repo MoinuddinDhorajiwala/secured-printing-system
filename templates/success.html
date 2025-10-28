@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Secure Printing System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-green-600 to-emerald-700 text-white shadow-xl">
+        <div class="max-w-4xl mx-auto px-6 py-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <h1 class="text-2xl lg:text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-check-circle text-3xl"></i>
+                    Payment Successful
+                </h1>
+                <a href="{{ url_for('preview_dashboard') }}" 
+                   class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-200 flex items-center gap-2">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div class="max-w-2xl mx-auto px-6 py-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <!-- Success Icon -->
+            <div class="bg-green-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                <i class="fas fa-check text-5xl text-green-600"></i>
+            </div>
+
+            <!-- Success Title -->
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Payment Successful!</h2>
+            <p class="text-gray-600 text-lg mb-8">Your payment has been processed successfully and credits have been added to your account.</p>
+
+            <!-- Payment Details -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-8 text-left">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-receipt text-green-600"></i>
+                    Payment Details
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Payment ID:</span>
+                        <span class="font-mono text-sm text-gray-800">{{ payment_id }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Order ID:</span>
+                        <span class="font-mono text-sm text-gray-800">{{ order_id }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Amount Paid:</span>
+                        <span class="font-bold text-green-600">₹{{ "%.2f"|format(amount) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Status:</span>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">Success</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Updated Credits Info -->
+            <div class="bg-blue-50 rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <i class="fas fa-coins text-2xl text-blue-600"></i>
+                    <span class="text-xl font-bold text-blue-800">Updated Balance</span>
+                </div>
+                <div class="text-3xl font-bold text-blue-600">{{ credits }} Credits</div>
+                {% if credits_added %}
+                <div class="text-green-600 font-medium mt-2">
+                    <i class="fas fa-plus-circle mr-1"></i>
+                    +{{ credits_added }} credits added
+                </div>
+                {% endif %}
+                <p class="text-blue-600 text-sm mt-2">Credits added to your account</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ url_for('preview_dashboard') }}" 
+                   class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2">
+                    <i class="fas fa-home"></i>
+                    Go to Dashboard
+                </a>
+                <a href="{{ url_for('buy_credits') }}" 
+                   class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center gap-2">
+                    <i class="fas fa-plus"></i>
+                    Buy More Credits
+                </a>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-info-circle text-blue-600"></i>
+                What's Next?
+            </h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fas fa-upload text-green-600"></i>
+                        <span class="font-medium text-gray-800">Upload Documents</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Upload your files securely for printing</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fas fa-history text-blue-600"></i>
+                        <span class="font-medium text-gray-800">View History</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Check your transaction history</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-redirect after 10 seconds -->
+    <script>
+        setTimeout(function() {
+            window.location.href = "{{ url_for('preview_dashboard') }}";
+        }, 10000);
+
+        // Show countdown
+        let countdown = 10;
+        const countdownElement = document.createElement('div');
+        countdownElement.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg';
+        countdownElement.innerHTML = `<i class="fas fa-clock mr-2"></i>Redirecting in ${countdown}s`;
+        document.body.appendChild(countdownElement);
+
+        const interval = setInterval(function() {
+            countdown--;
+            countdownElement.innerHTML = `<i class="fas fa-clock mr-2"></i>Redirecting in ${countdown}s`;
+            if (countdown <= 0) {
+                clearInterval(interval);
+                countdownElement.remove();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment - Secure Printing System</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='mhssce.png') }}">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-green-600 to-emerald-700 text-white shadow-xl">
+        <div class="max-w-4xl mx-auto px-6 py-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <h1 class="text-2xl lg:text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-coins text-3xl"></i>
+                    Complete Payment
+                </h1>
+                <a href="{{ url_for('preview_dashboard') }}" 
+                   class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-200 flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-2xl mx-auto px-6 py-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="text-center mb-8">
+                <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-rupee-sign text-3xl text-green-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Payment Details</h2>
+                <p class="text-gray-600">Complete your secure payment</p>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-gray-600">Amount:</span>
+                    <span class="text-2xl font-bold text-green-600">₹{{ "%.2f"|format(amount) }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Order ID:</span>
+                    <span class="text-sm font-mono text-gray-800">{{ order.id }}</span>
+                </div>
+            </div>
+
+            <!-- Payment Button -->
+            <button id="pay-button" 
+                    class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-green-600 hover:to-green-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
+                <i class="fas fa-lock text-xl"></i>
+                Pay ₹{{ "%.2f"|format(amount) }} Securely
+            </button>
+
+            <!-- Security Info -->
+            <div class="mt-6 text-center">
+                <div class="flex items-center justify-center gap-2 text-sm text-gray-600">
+                    <i class="fas fa-shield-alt text-green-500"></i>
+                    <span>Secured by Razorpay</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mt-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-credit-card text-green-500"></i>
+                Accepted Payment Methods
+            </h3>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <i class="fas fa-credit-card text-xl text-blue-600 mb-1"></i>
+                    <p class="text-xs font-medium text-gray-700">Credit Cards</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <i class="fas fa-university text-xl text-green-600 mb-1"></i>
+                    <p class="text-xs font-medium text-gray-700">Net Banking</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <i class="fas fa-wallet text-xl text-purple-600 mb-1"></i>
+                    <p class="text-xs font-medium text-gray-700">UPI</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <i class="fas fa-mobile-alt text-xl text-orange-600 mb-1"></i>
+                    <p class="text-xs font-medium text-gray-700">Wallets</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-2">
+                {% for message in messages %}
+                    <div class="bg-white border-l-4 border-red-500 shadow-lg rounded-lg p-4 max-w-sm animate-pulse">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                            <p class="text-gray-800">{{ message }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        // Razorpay Checkout Configuration
+        var options = {
+            key: "{{ key_id }}", // Enter the Key ID generated from the Dashboard
+            amount: "{{ order.amount }}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+            currency: "{{ order.currency }}",
+            name: "Secure Printing System",
+            description: "Purchase Credits",
+            image: "https://cdn-icons-png.flaticon.com/512/2920/2920277.png",
+            order_id: "{{ order.id }}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            handler: function (response){
+                // Payment successful - redirect to success page
+                window.location.href = "{{ url_for('payment_success') }}?order_id={{ order.id }}&payment_id=" + response.razorpay_payment_id + "&signature=" + response.razorpay_signature;
+            },
+            prefill: {
+                name: "{{ session.get('user_name', 'User') }}",
+                email: "{{ session.get('user_email', '') }}",
+                contact: ""
+            },
+            notes: {
+                user_id: "{{ session.get('user_id') }}",
+                transaction_id: "{{ trans_id }}"
+            },
+            theme: {
+                color: "#10b981" // Green color matching our theme
+            },
+            modal: {
+                ondismiss: function(){
+                    // Payment cancelled
+                    window.location.href = "{{ url_for('preview_dashboard') }}";
+                }
+            }
+        };
+
+        // Initialize Razorpay
+        var rzp1 = new Razorpay(options);
+
+        // Handle payment button click
+        document.getElementById('pay-button').onclick = function(e){
+            rzp1.open();
+            e.preventDefault();
+        }
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.animate-pulse');
+            messages.forEach(function(message) {
+                message.style.opacity = '0';
+                message.style.transform = 'translateX(100%)';
+                setTimeout(() => message.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

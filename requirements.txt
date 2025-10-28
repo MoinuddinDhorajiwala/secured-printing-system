@@ -1,0 +1,14 @@
+pywin32
+PyMuPDF
+reportlab
+Flask>=2.0
+psycopg2-binary
+python-dotenv
+werkzeug
+qrcode
+Pillow
+razorpay
+requests
+authlib
+flask-session
+gunicorn==21.2.0
