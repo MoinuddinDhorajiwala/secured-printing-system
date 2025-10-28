@@ -14,7 +14,7 @@ from db import get_connection, dict_cursor
 import razorpay
 from main2 import add_watermark, extract_pages, print_pdf
 from file_converter import convert_to_pdf, is_conversion_required, get_converted_pdf_path
-import tempfile, datetime, time
+import tempfile, datetime, win32print, time
 from authlib.integrations.flask_client import OAuth
 import json
 from flask_session import Session
@@ -31,10 +31,16 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'secure_printing_'
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('DATABASE_URL') else False  # Enable secure cookies in production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # 1 hour session timeout
+app.config['SECRET_KEY'] = SECRET_KEY  # Ensure secret key is set for session encryption
+
+# Fix for Railway deployment - handle reverse proxy headers
+if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('DATABASE_URL'):
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # Initialize Flask-Session
 server_session = Session(app)
@@ -168,7 +174,7 @@ def admin_required(f):
 
         if not row or not row.get("is_admin"):
             flash("Admin access required.")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("preview_dashboard"))
         return f(*args, **kwargs)
     return wrapper
 
@@ -517,7 +523,7 @@ def verify_oauth_otp():
                 session.pop('pending_oauth_registration', None)
                 
                 flash(f"Account created and logged in via {session['pending_oauth_registration']['oauth_provider'].title()}!")
-                return redirect(url_for("dashboard"))
+                return redirect(url_for("preview_dashboard"))
             except Exception as e:
                 conn.rollback()
                 flash(f"Error creating account: {str(e)}")
@@ -557,7 +563,7 @@ def login():
         cur.close(); conn.close()
         
         flash("Logged in.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     return render_template("login.html")
 
 # Quick login via QR token
@@ -582,7 +588,7 @@ def quick_login(token):
     cur.close(); conn.close()
     
     flash("Logged in via QR.")
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("preview_dashboard"))
 
 # OAuth Routes
 @app.route("/auth/<provider>")
@@ -592,8 +598,9 @@ def oauth_login(provider):
             if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
                 flash("Google OAuth is not configured. Please contact administrator.")
                 return redirect(url_for("login"))
-            # Use the correct redirect URI that matches Google Cloud Console configuration
-            redirect_uri = "http://127.0.0.1:5001/auth/google/callback"
+            # Generate redirect URI dynamically to match the current request
+            # For Railway deployment, let Flask detect the correct scheme and domain
+            redirect_uri = url_for('google_callback', _external=True)
             return google.authorize_redirect(redirect_uri)
         elif provider == 'microsoft':
             if not MICROSOFT_CLIENT_ID or not MICROSOFT_CLIENT_SECRET:
@@ -686,10 +693,16 @@ def oauth_callback(provider):
                 return redirect(url_for("login"))
         
         cur.close(); conn.close()
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
         
     except Exception as e:
-        flash(f"OAuth authentication failed: {str(e)}")
+        error_msg = str(e)
+        if "mismatching_state" in error_msg.lower():
+            flash("OAuth authentication failed: CSRF state mismatch. Please try logging in again.")
+        elif "csrf" in error_msg.lower():
+            flash("OAuth authentication failed: Security validation error. Please try logging in again.")
+        else:
+            flash(f"OAuth authentication failed: {error_msg}")
         return redirect(url_for("login"))
 
 # Logout
@@ -821,7 +834,7 @@ def restore_document(temp_doc_id):
         
         conn.commit()
         flash(f"Document '{temp_doc['original_name']}' restored successfully!")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
         
     except Exception as e:
         conn.rollback()
@@ -1147,7 +1160,7 @@ def upload():
 
             conn.commit()
             flash("File uploaded and saved to your account.")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("preview_dashboard"))
         except Exception as e:
             conn.rollback()
             flash("Upload error: " + str(e))
@@ -1169,10 +1182,10 @@ def download_document(doc_id):
     cur.close(); conn.close()
     if not row:
         flash("Document not found.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     if row["user_id"] != uid:
         flash("Access denied.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
 
     data = row["doc_blob"]
     name = row["doc_name"]
@@ -1195,7 +1208,7 @@ def rename_document(doc_id):
     new_name = request.form.get("new_name", "").strip()
     if not new_name:
         flash("New name required.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     uid = session["user_id"]
     conn = get_connection()
     cur = dict_cursor(conn)
@@ -1204,7 +1217,7 @@ def rename_document(doc_id):
     if not row or row["user_id"] != uid:
         cur.close(); conn.close()
         flash("Access denied.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     try:
         cur.execute("UPDATE documents SET doc_name=%s WHERE doc_id=%s", (new_name, doc_id))
         conn.commit()
@@ -1214,7 +1227,7 @@ def rename_document(doc_id):
         flash("Error renaming: " + str(e))
     finally:
         cur.close(); conn.close()
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("preview_dashboard"))
 
 # Delete document
 @app.route("/document/<int:doc_id>/delete", methods=["POST"])
@@ -1228,7 +1241,7 @@ def delete_document(doc_id):
     if not row or row["user_id"] != uid:
         cur.close(); conn.close()
         flash("Access denied.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     try:
         cur.execute("DELETE FROM documents WHERE doc_id=%s", (doc_id,))
         conn.commit()
@@ -1238,7 +1251,7 @@ def delete_document(doc_id):
         flash("Delete error: " + str(e))
     finally:
         cur.close(); conn.close()
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("preview_dashboard"))
 
 # ----- Razorpay: create order for credits -----
 @app.route("/buy_credits", methods=["GET","POST"])
@@ -1247,13 +1260,13 @@ def buy_credits():
     # Check if Razorpay is configured
     if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
         flash("Payment system is not configured. Please contact administrator.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
         
     if request.method == "POST":
         amount_rupees = float(request.form.get("amount", "0"))
         if amount_rupees <= 0:
             flash("Enter valid amount.")
-            return redirect(url_for("buy_credits"))
+            return redirect(url_for("preview_dashboard"))
         amount_paise = int(amount_rupees * 100)
 
         try:
@@ -1278,7 +1291,7 @@ def buy_credits():
         except Exception as e:
             conn.rollback()
             flash("Error creating transaction: " + str(e))
-            return redirect(url_for("buy_credits"))
+            return redirect(url_for("preview_dashboard"))
         finally:
             cur.close(); conn.close()
 
@@ -1457,7 +1470,7 @@ def transactions():
     except Exception as e:
         cur.close(); conn.close()
         flash(f"Error loading transactions: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 # User Print History
 @app.route("/print_history")
@@ -1474,12 +1487,13 @@ def print_history():
         user = cur.fetchone()
         
         # Get all print jobs for this user with document names
-        # Use stored document_name to preserve document names permanently
+        # Use LEFT JOIN to handle cases where document was moved to temp_documents
         cur.execute("""
-            SELECT pj.job_id, pj.doc_id, pj.document_name as doc_name, 
+            SELECT pj.job_id, pj.doc_id, COALESCE(d.doc_name, 'Deleted Document') as doc_name, 
                    pj.printer, pj.page_range, pj.copies, pj.duplex, pj.credits_deducted, 
                    pj.status, pj.requested_at, pj.printed_at
             FROM print_jobs pj
+            LEFT JOIN documents d ON pj.doc_id = d.doc_id
             WHERE pj.user_id=%s 
             ORDER BY pj.requested_at DESC
         """, (uid,))
@@ -1509,7 +1523,7 @@ def print_history():
     except Exception as e:
         cur.close(); conn.close()
         flash(f"Error loading print history: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 @app.route("/print/<int:doc_id>", methods=["POST"])
 @login_required
@@ -1529,7 +1543,7 @@ def print_document(doc_id):
     if not row or row["user_id"] != uid:
         cur.close(); conn.close()
         flash("❌ Access denied or document not found.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
 
     # Get user credits
     cur.execute("SELECT credits FROM users WHERE user_id=%s", (uid,))
@@ -1606,9 +1620,9 @@ def print_document(doc_id):
 
     # Insert into print_jobs (pending)
     cur.execute(
-        """INSERT INTO print_jobs (user_id, doc_id, document_name, printer, page_range, watermark, copies, status, duplex, credits_deducted)
-           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING job_id""",
-        (uid, doc_id, row["doc_name"], printer_name, page_range, watermark, copies, "pending", duplex, credits_required)
+        """INSERT INTO print_jobs (user_id, doc_id, printer, page_range, watermark, copies, status, duplex, credits_deducted)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING job_id""",
+        (uid, doc_id, printer_name, page_range, watermark, copies, "pending", duplex, credits_required)
     )
     job_id = cur.fetchone()["job_id"]
     conn.commit()
@@ -1672,7 +1686,7 @@ def print_document(doc_id):
     finally:
         cur.close(); conn.close()
 
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("preview_dashboard"))
 @app.route("/print_page/<int:doc_id>")
 @login_required
 def print_page(doc_id):
@@ -1685,10 +1699,10 @@ def print_page(doc_id):
     
     if not row or row["user_id"] != uid:
         flash("Access denied or document not found.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     
-    # For Railway deployment, return mock printers since actual printing is not available
-    printers = ["Mock Printer 1", "Mock Printer 2", "Mock Printer 3"]
+    # Fetch available printers
+    printers = [p[2] for p in win32print.EnumPrinters(2)]
     return render_template("print.html", doc_id=doc_id, doc_name=row["doc_name"], printers=printers)
 
 @app.route("/view_pdf/<int:doc_id>")
@@ -1703,7 +1717,7 @@ def view_pdf(doc_id):
     
     if not row or row["user_id"] != uid:
         flash("Access denied or document not found.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     
     data = row["doc_blob"]
     mime = row["doc_type"] or "application/pdf"
@@ -1725,7 +1739,7 @@ def debug_oauth():
     # Only allow admin users to access debug routes
     if not session.get('is_admin', False):
         flash("Access denied. Admin privileges required.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     return f"""
     <h2>OAuth Debug Information</h2>
@@ -1748,7 +1762,7 @@ def debug_razorpay():
     # Only allow admin users to access debug routes
     if not session.get('is_admin', False):
         flash("Access denied. Admin privileges required.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     razorpay_status = "Not configured"
     test_result = "Not tested"
@@ -1791,7 +1805,7 @@ def get_qr_code():
     
     if not row or not row["qr_code"]:
         flash("QR code not generated yet. Upload a document first.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     
     qr_data = row["qr_code"]
     
@@ -1814,7 +1828,7 @@ def admin_dashboard():
     # Check if current user is admin
     if not session.get('is_admin', False):
         flash("Access denied. Admin privileges required.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
     
     try:
         conn = get_connection()
@@ -1951,7 +1965,7 @@ def admin_dashboard():
                                
     except Exception as e:
         flash(f"Error loading admin dashboard: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 @app.route("/make_me_admin")
 @login_required
@@ -1975,7 +1989,7 @@ def make_me_admin():
         
     except Exception as e:
         flash(f"Error making you admin: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 @app.route("/admin/add_credits", methods=["POST"])
 @login_required
@@ -1984,7 +1998,7 @@ def admin_add_credits_post():
     # Check if current user is admin
     if not session.get('is_admin', False):
         flash("Access denied. Admin privileges required.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
     
     try:
         user_id = int(request.form.get('user_id', 0))
@@ -2035,7 +2049,7 @@ def admin_add_credits(user_id, credits):
     # Check if current user is admin
     if not session.get('is_admin', False):
         flash("Access denied. Admin privileges required.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
     
     try:
         conn = get_connection()
@@ -2047,7 +2061,7 @@ def admin_add_credits(user_id, credits):
         
         if not user_data:
             flash("User not found.")
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('preview_dashboard'))
         
         current_credits = user_data['credits']
         new_credits = current_credits + credits
@@ -2065,11 +2079,11 @@ def admin_add_credits(user_id, credits):
         cur.close(); conn.close()
         
         flash(f"✅ Successfully added {credits} credits to user {user_data['user_email']}. New balance: {new_credits} credits.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     except Exception as e:
         flash(f"Error adding credits: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 @app.route("/add_credits", methods=["POST"])
 @login_required
@@ -2079,7 +2093,7 @@ def add_credits():
         credits = int(request.form.get('credits', 0))
         if credits <= 0:
             flash("Invalid credits amount.")
-            return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
         conn = get_connection()
         cur = dict_cursor(conn)
@@ -2102,11 +2116,11 @@ def add_credits():
         cur.close(); conn.close()
         
         flash(f"✅ Successfully added {credits} credits to your account. New balance: {new_credits} credits.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     except Exception as e:
         flash(f"Error adding credits: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 # Quick payment routes for 50 and 100 rupee orders
 @app.route("/pay/50")
@@ -2135,7 +2149,7 @@ def create_payment_order_with_credits(amount, credits, description):
     """Helper function to create Razorpay order with specified credits"""
     if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
         flash("Payment service is not configured. Please contact support.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     
     try:
         import razorpay
@@ -2174,7 +2188,7 @@ def create_payment_order_with_credits(amount, credits, description):
         
     except Exception as e:
         flash(f"Error creating payment order: {str(e)}")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
 
 @app.route("/payment/success")
 @login_required
@@ -2186,7 +2200,7 @@ def payment_success():
     
     if not all([order_id, payment_id, signature]):
         flash("Invalid payment response.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     
     try:
         import razorpay
@@ -2244,10 +2258,10 @@ def payment_success():
         
     except razorpay.errors.SignatureVerificationError:
         flash("Payment verification failed. Please contact support.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     except Exception as e:
         flash(f"Error processing payment: {str(e)}")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
 
 
 # Route to promote user to admin (use carefully)
@@ -2258,7 +2272,7 @@ def make_admin(user_id):
     # Only allow admin users to promote others to admin
     if not session.get('is_admin', False):
         flash("Access denied. Admin privileges required.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     try:
         conn = get_connection()
@@ -2270,7 +2284,7 @@ def make_admin(user_id):
         
         if not user_data:
             flash("User not found.")
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('preview_dashboard'))
         
         # Promote to admin
         cur.execute("UPDATE users SET is_admin=TRUE WHERE user_id=%s", (user_id,))
@@ -2278,11 +2292,11 @@ def make_admin(user_id):
         cur.close(); conn.close()
         
         flash(f"User {user_data['user_email']} has been promoted to admin.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     except Exception as e:
         flash(f"Error promoting user to admin: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 # Route to regenerate all QR codes
 @app.route("/regenerate_qr_codes")
@@ -2291,7 +2305,7 @@ def regenerate_qr_codes():
     """Regenerate all QR codes with the correct port"""
     if not session.get('is_admin', False):
         flash("Access denied. Admin privileges required.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     try:
         conn = get_connection()
@@ -2327,11 +2341,11 @@ def regenerate_qr_codes():
         cur.close(); conn.close()
         
         flash(f"Successfully regenerated {count} QR codes with the correct port.")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
         
     except Exception as e:
         flash(f"Error regenerating QR codes: {str(e)}")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('preview_dashboard'))
 
 # Session manager routes
 @app.route("/session_manager")
