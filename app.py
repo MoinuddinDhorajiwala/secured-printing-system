@@ -557,7 +557,7 @@ def login():
         cur.close(); conn.close()
         
         flash("Logged in.")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("preview_dashboard"))
     return render_template("login.html")
 
 # Quick login via QR token
